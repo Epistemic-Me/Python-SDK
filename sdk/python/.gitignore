@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDEs
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+
+# Misc
+.DS_Store
+epistemic_me_env
+generated/
