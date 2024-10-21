@@ -52,3 +52,34 @@ class GrpcClient:
         )
         response = self.stub.GetBeliefSystemDetail(request)
         return MessageToDict(response)
+
+    def create_self_agent(self, user_id: str, philosophies: List[str]) -> Dict[str, Any]:
+        request = epistemic_me_pb2.CreateSelfAgentRequest(
+            id=user_id,
+            philosophies=philosophies
+        )
+        response = self.stub.CreateSelfAgent(request)
+        return MessageToDict(response)
+
+    def get_self_agent(self, self_agent_id: str) -> Dict[str, Any]:
+        request = epistemic_me_pb2.GetSelfAgentRequest(
+            self_agent_id=self_agent_id
+        )
+        response = self.stub.GetSelfAgent(request)
+        return MessageToDict(response)
+
+    def add_philosophy(self, self_agent_id: str, philosophy_id: str) -> Dict[str, Any]:
+        request = epistemic_me_pb2.AddPhilosophyRequest(
+            self_agent_id=self_agent_id,
+            philosophy_id=philosophy_id
+        )
+        response = self.stub.AddPhilosophy(request)
+        return MessageToDict(response)
+
+    def create_philosophy(self, description: str, extrapolate_contexts: bool) -> Dict[str, Any]:
+        request = epistemic_me_pb2.CreatePhilosophyRequest(
+            description=description,
+            extrapolate_contexts=extrapolate_contexts
+        )
+        response = self.stub.CreatePhilosophy(request)
+        return MessageToDict(response)
