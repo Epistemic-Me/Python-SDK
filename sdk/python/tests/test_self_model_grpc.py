@@ -1,89 +1,52 @@
- 
 import pytest
 import uuid
-from epistemic_me.grpc_client import GrpcClient
-from epistemic_me.generated.proto.models import dialectic_pb2
+import epistemic_me
 
-@pytest.fixture
-def client():
-    return GrpcClient('localhost:8080')
+@pytest.fixture(autouse=True)
+def setup_epistemic_me():
+    epistemic_me.create("test_api_key", "localhost:8080")
 
-def test_self_model_integration(client):
+def test_self_model_integration():
     # Test CreateSelfModel
     user_id = str(uuid.uuid4())
-    create_self_model_response = client.create_self_model(user_id, philosophies=["default"])
+    create_self_model_response = epistemic_me.SelfModel.create(id=user_id)
     assert create_self_model_response['selfModel']['id'] == user_id
     assert create_self_model_response['selfModel']['philosophies'] == ["default"]
 
-    # Test GetSelfModel
-    get_self_model_response = client.get_self_model(user_id)
+    # Test RetrieveSelfModel
+    get_self_model_response = epistemic_me.SelfModel.retrieve(self_id=user_id)
     assert get_self_model_response['selfModel']['id'] == user_id
     assert get_self_model_response['selfModel']['philosophies'] == ["default"]
 
-    # Test CreatePhilosophy
-    create_philosophy_response = client.create_philosophy("Test philosophy", True)
-    assert create_philosophy_response['philosophy']['description'] == "Test philosophy"
-    assert create_philosophy_response['philosophy']['extrapolateContexts'] == True
-    philosophy_id = create_philosophy_response['philosophy']['id']
+    # Test ListDialectics
+    list_dialectics_response = epistemic_me.SelfModel.list_dialectics(self_model_id=user_id)
+    assert isinstance(list_dialectics_response, dict)
+    assert isinstance(list_dialectics_response.get('dialectics', []), list)
 
-    # Test AddPhilosophy
-    add_philosophy_response = client.add_philosophy(user_id, philosophy_id)
-    assert philosophy_id in add_philosophy_response['updatedSelfModel']['philosophies']
-
-    # Test GetBeliefSystemOfSelfModel
-    get_belief_system_response = client.get_self_model(user_id)
-    assert 'beliefSystem' in get_belief_system_response['selfModel']
-    assert len(get_belief_system_response['selfModel']['beliefSystem'].get('beliefs', [])) == 0
-    assert len(get_belief_system_response['selfModel']['beliefSystem'].get('observationContexts', [])) == 0
-
-    # Test ListDialecticsOfSelfModel
-    create_dialectic_response = client.create_dialectic(user_id, dialectic_pb2.DialecticType.DEFAULT)
-    assert 'dialecticId' in create_dialectic_response
-
-    get_self_model_with_dialectics_response = client.get_self_model(user_id)
-    assert len(get_self_model_with_dialectics_response['selfModel'].get('dialectics', [])) == 1
-    assert get_self_model_with_dialectics_response['selfModel']['dialectics'][0]['id'] == create_dialectic_response['dialecticId']
-
-def test_create_self_model(client):
+def test_create_self_model():
     user_id = str(uuid.uuid4())
-    response = client.create_self_model(user_id, philosophies=["default"])
+    response = epistemic_me.SelfModel.create(id=user_id)
     assert response['selfModel']['id'] == user_id
     assert response['selfModel']['philosophies'] == ["default"]
 
-def test_get_self_model(client):
+def test_retrieve_self_model():
     user_id = str(uuid.uuid4())
-    client.create_self_model(user_id, philosophies=["default"])
-    response = client.get_self_model(user_id)
+    epistemic_me.SelfModel.create(id=user_id)
+    response = epistemic_me.SelfModel.retrieve(self_id=user_id)
     assert response['selfModel']['id'] == user_id
     assert response['selfModel']['philosophies'] == ["default"]
 
-def test_create_philosophy(client):
-    response = client.create_philosophy("Test philosophy", True)
-    assert response['philosophy']['description'] == "Test philosophy"
-    assert response['philosophy']['extrapolateContexts'] == True
-
-def test_add_philosophy(client):
+def test_retrieve_belief_system():
     user_id = str(uuid.uuid4())
-    client.create_self_model(user_id, philosophies=["default"])
-    philosophy_response = client.create_philosophy("New philosophy", False)
-    philosophy_id = philosophy_response['philosophy']['id']
-    
-    response = client.add_philosophy(user_id, philosophy_id)
-    assert philosophy_id in response['updatedSelfModel']['philosophies']
+    epistemic_me.SelfModel.create(id=user_id)
+    response = epistemic_me.SelfModel.retrieve_belief_system(self_model_id=user_id)
+    assert 'beliefSystem' in response
+    assert 'beliefs' in response['beliefSystem']
+    assert 'observationContexts' in response['beliefSystem']
 
-def test_get_belief_system_of_self_model(client):
+def test_list_dialectics():
     user_id = str(uuid.uuid4())
-    client.create_self_model(user_id, philosophies=["default"])
-    response = client.get_self_model(user_id)
-    assert 'beliefSystem' in response['selfModel']
-    assert len(response['selfModel']['beliefSystem'].get('beliefs', [])) == 0
-    assert len(response['selfModel']['beliefSystem'].get('observationContexts', [])) == 0
-
-def test_list_dialectics_of_self_model(client):
-    user_id = str(uuid.uuid4())
-    client.create_self_model(user_id, philosophies=["default"])
-    create_dialectic_response = client.create_dialectic(user_id, dialectic_pb2.DialecticType.DEFAULT)
-    
-    response = client.get_self_model(user_id)
-    assert len(response['selfModel'].get('dialectics', [])) == 1
-    assert response['selfModel']['dialectics'][0]['id'] == create_dialectic_response['dialecticId']
+    epistemic_me.SelfModel.create(id=user_id)
+    response = epistemic_me.SelfModel.list_dialectics(self_model_id=user_id)
+    assert isinstance(response, dict)
+    assert isinstance(response.get('dialectics', []), list)

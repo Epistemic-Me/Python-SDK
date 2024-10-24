@@ -1,16 +1,23 @@
-# from .self_model import SelfModel
-from .generated.proto import *
-from .philosophy import Philosophy
-from .dialectic import Dialectic
 from .config import Config
 
-class EpistemicMe:
-    def __init__(self, api_key: str, base_url: str = "http://localhost:8080"):
-        self.config = Config(api_key, base_url)
-        # self.self_model = SelfModel(self.config)
-        self.philosophy = Philosophy(self.config)
-        self.dialectic = Dialectic(self.config)
+config = Config()
 
-# Convenience function to create an instance
-def create(api_key: str, base_url: str = "http://localhost:8080") -> EpistemicMe:
-    return EpistemicMe(api_key, base_url)
+def set_api_key(key: str):
+    config.api_key = key
+
+def set_base_url(url: str):
+    config.base_url = url
+
+# Import these after setting up config to avoid circular imports
+from .self_model import SelfModel
+from .philosophy import Philosophy
+from .dialectic import Dialectic
+
+def create(api_key: str, base_url: str = "http://localhost:8080"):
+    set_api_key(api_key)
+    set_base_url(base_url)
+    return {
+        "self_model": SelfModel,
+        "philosophy": Philosophy,
+        "dialectic": Dialectic
+    }
