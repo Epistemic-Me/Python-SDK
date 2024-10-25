@@ -12,6 +12,8 @@ def set_base_url(url: str):
 from .self_model import SelfModel
 from .philosophy import Philosophy
 from .dialectic import Dialectic
+from .developer import Developer
+from .user import User
 
 def create(api_key: str, base_url: str = "http://localhost:8080"):
     set_api_key(api_key)
@@ -19,5 +21,7 @@ def create(api_key: str, base_url: str = "http://localhost:8080"):
     return {
         "self_model": SelfModel,
         "philosophy": Philosophy,
-        "dialectic": Dialectic
+        "dialectic": Dialectic,
+        "developer": Developer,
+        "user": User
     }

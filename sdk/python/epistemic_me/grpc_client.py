@@ -10,25 +10,26 @@ class GrpcClient:
         self.channel = grpc.insecure_channel(base_url)
         self.stub = epistemic_me_pb2_grpc.EpistemicMeServiceStub(self.channel)
         self.api_key = api_key
+        self.pb = epistemic_me_pb2
 
     def _get_metadata(self):
         return [('api-key', self.api_key)]
 
-    def create_belief(self, user_id: str, belief_content: str) -> Dict[str, Any]:
-        request = epistemic_me_pb2.CreateBeliefRequest(
-            user_id=user_id,
+    def create_belief(self, self_model_id: str, belief_content: str) -> Dict[str, Any]:
+        request = self.pb.CreateBeliefRequest(
+            self_model_id=self_model_id,
             belief_content=belief_content
         )
         response = self.stub.CreateBelief(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
-    def list_beliefs(self, user_id: str) -> List[Dict[str, Any]]:
-        request = epistemic_me_pb2.ListBeliefsRequest(user_id=user_id)
+    def list_beliefs(self, self_model_id: str) -> List[Dict[str, Any]]:
+        request = self.pb.ListBeliefsRequest(self_model_id=self_model_id)
         response = self.stub.ListBeliefs(request, metadata=self._get_metadata())
         return [MessageToDict(belief) for belief in response.beliefs]
 
     def update_dialectic(self, dialectic_id: str, answer: dialectic_pb2.UserAnswer, self_model_id: str = "", dry_run: bool = False):
-        request = epistemic_me_pb2.UpdateDialecticRequest(
+        request = self.pb.UpdateDialecticRequest(
             id=dialectic_id,
             answer=answer,
             self_model_id=self_model_id,
@@ -38,38 +39,53 @@ class GrpcClient:
         return MessageToDict(response)
 
     def create_self_model(self, id: str, philosophies: list[str]):
-        request = epistemic_me_pb2.CreateSelfModelRequest(id=id, philosophies=philosophies)
+        request = self.pb.CreateSelfModelRequest(id=id, philosophies=philosophies)
         response = self.stub.CreateSelfModel(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
     def get_self_model(self, self_id: str):
-        request = epistemic_me_pb2.GetSelfModelRequest(self_model_id=self_id)
+        request = self.pb.GetSelfModelRequest(self_model_id=self_id)
         response = self.stub.GetSelfModel(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
     def get_belief_system(self, self_model_id: str) -> Dict[str, Any]:
-        request = epistemic_me_pb2.GetBeliefSystemRequest(
+        request = self.pb.GetBeliefSystemRequest(
             self_model_id=self_model_id
         )
         response = self.stub.GetBeliefSystem(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
     def list_dialectics(self, self_model_id: str):
-        request = epistemic_me_pb2.ListDialecticsRequest(self_model_id=self_model_id)
+        request = self.pb.ListDialecticsRequest(self_model_id=self_model_id)
         response = self.stub.ListDialectics(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
     def add_philosophy(self, self_model_id: str, philosophy_id: str) -> Dict[str, Any]:
-        request = epistemic_me_pb2.AddPhilosophyRequest(
+        request = self.pb.AddPhilosophyRequest(
             self_model_id=self_model_id,
             philosophy_id=philosophy_id
         )
-        response = self.stub.AddPhilosophy(request)
+        response = self.stub.AddPhilosophy(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
     def create_dialectic(self, self_model_id: str):
-        request = epistemic_me_pb2.CreateDialecticRequest(
-            id=self_model_id
+        request = self.pb.CreateDialecticRequest(
+            self_model_id=self_model_id
         )
         response = self.stub.CreateDialectic(request, metadata=self._get_metadata())
         return MessageToDict(response)
+
+    def create_developer(self, name: str, email: str) -> dict:
+        request = self.pb.CreateDeveloperRequest(name=name, email=email)
+        response = self.stub.CreateDeveloper(request, metadata=self._get_metadata())
+        return MessageToDict(response.developer)
+
+    def get_developer(self, developer_id: str) -> dict:
+        request = self.pb.GetDeveloperRequest(id=developer_id)
+        response = self.stub.GetDeveloper(request, metadata=self._get_metadata())
+        return MessageToDict(response.developer)  # Note: accessing .developer field
+
+    def create_user(self, developer_id: str, name: str, email: str) -> dict:
+        request = self.pb.CreateUserRequest(developer_id=developer_id, name=name, email=email)
+        response = self.stub.CreateUser(request, metadata=self._get_metadata())
+        return MessageToDict(response.user)
