@@ -44,7 +44,7 @@ def test_retrieve_developer(mock_grpc_client):
     mock_response.developer.api_keys.append('test_api_key')
     mock_grpc_client.stub.GetDeveloper.return_value = mock_response
 
-    result = mock_grpc_client.get_developer(developer_id='dev123')
+    result = mock_grpc_client.get_developer(id='dev123')
     
     mock_grpc_client.stub.GetDeveloper.assert_called_once_with(
         epistemic_me_pb2.GetDeveloperRequest(id='dev123'),

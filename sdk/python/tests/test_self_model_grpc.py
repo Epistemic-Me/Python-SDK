@@ -14,7 +14,7 @@ def authenticated_client(client):
     developer = epistemic_me.Developer.create(name=developer_name, email=developer_email)
     
     # Fetch the developer to get the API key
-    developer_with_key = epistemic_me.Developer.retrieve(developer_id=developer["id"])
+    developer_with_key = epistemic_me.Developer.retrieve(id=developer["id"])
     
     # Return both the authenticated client and the developer info
     return {
@@ -30,12 +30,12 @@ def test_self_model_integration(authenticated_client):
     assert create_self_model_response['selfModel']['philosophies'] == ["default"]
 
     # Test RetrieveSelfModel
-    get_self_model_response = epistemic_me.SelfModel.retrieve(self_id=self_model_id)
+    get_self_model_response = epistemic_me.SelfModel.retrieve(id=self_model_id)
     assert get_self_model_response['selfModel']['id'] == self_model_id
     assert get_self_model_response['selfModel']['philosophies'] == ["default"]
 
     # Test ListDialectics
-    list_dialectics_response = epistemic_me.SelfModel.list_dialectics(self_model_id=self_model_id)
+    list_dialectics_response = epistemic_me.SelfModel.list_dialectics(id=self_model_id)
     assert isinstance(list_dialectics_response, dict)
     assert isinstance(list_dialectics_response.get('dialectics', []), list)
 
@@ -48,7 +48,7 @@ def test_create_self_model(authenticated_client):
 def test_retrieve_self_model(authenticated_client):
     self_model_id = str(uuid.uuid4())
     epistemic_me.SelfModel.create(id=self_model_id)
-    response = epistemic_me.SelfModel.retrieve(self_id=self_model_id)
+    response = epistemic_me.SelfModel.retrieve(id=self_model_id)
     assert response['selfModel']['id'] == self_model_id
     assert response['selfModel']['philosophies'] == ["default"]
 
@@ -65,6 +65,6 @@ def test_retrieve_self_model(authenticated_client):
 def test_list_dialectics(authenticated_client):
     self_model_id = str(uuid.uuid4())
     epistemic_me.SelfModel.create(id=self_model_id)
-    response = epistemic_me.SelfModel.list_dialectics(self_model_id=self_model_id)
+    response = epistemic_me.SelfModel.list_dialectics(id=self_model_id)
     assert isinstance(response, dict)
     assert isinstance(response.get('dialectics', []), list)

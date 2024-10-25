@@ -6,17 +6,17 @@ class User:
         return config.grpc_client.create_user(developer_id, name, email)
 
     @classmethod
-    def retrieve(cls, user_id: str):
-        return config.grpc_client.get_user(user_id)
+    def retrieve(cls, id: str):
+        return config.grpc_client.get_user(id)
 
     @classmethod
     def list(cls, developer_id: str):
         return config.grpc_client.list_users(developer_id)
 
     @classmethod
-    def update(cls, user_id: str, **kwargs):
-        return config.grpc_client.update_user(user_id, **kwargs)
+    def update(cls, id: str, **kwargs):
+        return config.grpc_client.update_user(id, **kwargs)
 
     @classmethod
-    def delete(cls, user_id: str):
-        return config.grpc_client.delete_user(user_id)
+    def delete(cls, id: str):
+        return config.grpc_client.delete_user(id)

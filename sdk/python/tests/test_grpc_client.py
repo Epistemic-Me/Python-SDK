@@ -54,7 +54,7 @@ def test_update_dialectic(mock_grpc_client):
     user_answer = dialectic_pb2.UserAnswer(user_answer="Test answer")
     
     result = mock_grpc_client.update_dialectic(
-        dialectic_id='dialectic123',
+        id='dialectic123',
         answer=user_answer,
         self_model_id='model123'
     )

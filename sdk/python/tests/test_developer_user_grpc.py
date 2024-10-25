@@ -14,7 +14,7 @@ def authenticated_client(client):
     developer = epistemic_me.Developer.create(name=developer_name, email=developer_email)
     
     # Fetch the developer to get the API key
-    developer_with_key = epistemic_me.Developer.retrieve(developer_id=developer["id"])
+    developer_with_key = epistemic_me.Developer.retrieve(id=developer["id"])
     
     # Return both the authenticated client and the developer info for tests that need it
     return {
@@ -37,7 +37,7 @@ def test_create_developer(client):
 
 def test_retrieve_developer(authenticated_client):
     retrieved_developer = epistemic_me.Developer.retrieve(
-        developer_id=authenticated_client["developer"]["id"]
+        id=authenticated_client["developer"]["id"]
     )
     assert retrieved_developer["id"] == authenticated_client["developer"]["id"]
     assert retrieved_developer["name"] == authenticated_client["developer"]["name"]

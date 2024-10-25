@@ -28,9 +28,9 @@ class GrpcClient:
         response = self.stub.ListBeliefs(request, metadata=self._get_metadata())
         return [MessageToDict(belief) for belief in response.beliefs]
 
-    def update_dialectic(self, dialectic_id: str, answer: dialectic_pb2.UserAnswer, self_model_id: str = "", dry_run: bool = False):
+    def update_dialectic(self, id: str, answer: dialectic_pb2.UserAnswer, self_model_id: str = "", dry_run: bool = False):
         request = self.pb.UpdateDialecticRequest(
-            id=dialectic_id,
+            id=id,
             answer=answer,
             self_model_id=self_model_id,
             dry_run=dry_run
@@ -43,34 +43,34 @@ class GrpcClient:
         response = self.stub.CreateSelfModel(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
-    def get_self_model(self, self_id: str):
-        request = self.pb.GetSelfModelRequest(self_model_id=self_id)
+    def get_self_model(self, id: str):
+        request = self.pb.GetSelfModelRequest(self_model_id=id)
         response = self.stub.GetSelfModel(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
-    def get_belief_system(self, self_model_id: str) -> Dict[str, Any]:
+    def get_belief_system(self, id: str) -> Dict[str, Any]:
         request = self.pb.GetBeliefSystemRequest(
-            self_model_id=self_model_id
+            self_model_id=id
         )
         response = self.stub.GetBeliefSystem(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
-    def list_dialectics(self, self_model_id: str):
-        request = self.pb.ListDialecticsRequest(self_model_id=self_model_id)
+    def list_dialectics(self, id: str):
+        request = self.pb.ListDialecticsRequest(self_model_id=id)
         response = self.stub.ListDialectics(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
-    def add_philosophy(self, self_model_id: str, philosophy_id: str) -> Dict[str, Any]:
+    def add_philosophy(self, id: str, philosophy_id: str) -> Dict[str, Any]:
         request = self.pb.AddPhilosophyRequest(
-            self_model_id=self_model_id,
+            self_model_id=id,
             philosophy_id=philosophy_id
         )
         response = self.stub.AddPhilosophy(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
-    def create_dialectic(self, self_model_id: str):
+    def create_dialectic(self, id: str):
         request = self.pb.CreateDialecticRequest(
-            self_model_id=self_model_id
+            self_model_id=id
         )
         response = self.stub.CreateDialectic(request, metadata=self._get_metadata())
         return MessageToDict(response)
@@ -80,10 +80,10 @@ class GrpcClient:
         response = self.stub.CreateDeveloper(request, metadata=self._get_metadata())
         return MessageToDict(response.developer)
 
-    def get_developer(self, developer_id: str) -> dict:
-        request = self.pb.GetDeveloperRequest(id=developer_id)
+    def get_developer(self, id: str) -> dict:
+        request = self.pb.GetDeveloperRequest(id=id)
         response = self.stub.GetDeveloper(request, metadata=self._get_metadata())
-        return MessageToDict(response.developer)  # Note: accessing .developer field
+        return MessageToDict(response.developer)
 
     def create_user(self, developer_id: str, name: str, email: str) -> dict:
         request = self.pb.CreateUserRequest(developer_id=developer_id, name=name, email=email)
