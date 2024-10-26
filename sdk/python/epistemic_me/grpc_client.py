@@ -13,7 +13,9 @@ class GrpcClient:
         self.pb = epistemic_me_pb2
 
     def _get_metadata(self):
-        return [('api-key', self.api_key)]
+        if self.api_key:
+            return [("x-api-key", self.api_key)]
+        return []
 
     def create_belief(self, self_model_id: str, belief_content: str) -> Dict[str, Any]:
         request = self.pb.CreateBeliefRequest(

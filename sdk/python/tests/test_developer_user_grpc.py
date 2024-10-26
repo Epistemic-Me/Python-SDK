@@ -13,12 +13,14 @@ def authenticated_client(client):
     developer_email = f"test_{uuid.uuid4()}@example.com"
     developer = epistemic_me.Developer.create(name=developer_name, email=developer_email)
     
-    # Fetch the developer to get the API key
+    # Set the API key in the config for subsequent calls
+    epistemic_me.config.api_key = developer["apiKeys"][0]
+    
+    # Now retrieve the developer using the configured API key
     developer_with_key = epistemic_me.Developer.retrieve(id=developer["id"])
     
-    # Return both the authenticated client and the developer info for tests that need it
     return {
-        "client": epistemic_me.create(developer_with_key["apiKeys"][0], "localhost:8080"),
+        "client": client,  # Use the original client
         "developer": developer_with_key
     }
 
