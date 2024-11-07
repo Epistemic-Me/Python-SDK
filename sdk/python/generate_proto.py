@@ -34,7 +34,7 @@ def fix_imports(file_path):
 
 def main():
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    proto_dir = os.path.join(project_root, 'backend')
+    proto_dir = os.path.join(project_root, 'core')
     out_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'epistemic_me', 'generated'))
 
     # Ensure output directory exists
