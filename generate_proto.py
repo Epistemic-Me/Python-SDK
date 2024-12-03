@@ -1,73 +1,33 @@
 import os
 import subprocess
 import sys
-import re
 from grpc_tools import protoc
 
-print(f"Python version: {sys.version}")
-print(f"Python executable: {sys.executable}")
-print(f"Current working directory: {os.getcwd()}")
-
-print(f"Using protoc: {subprocess.check_output(['which', 'protoc']).decode().strip()}")
-print(f"Protoc version: {subprocess.check_output(['protoc', '--version']).decode().strip()}")
-
-def fix_imports(file_path):
-    with open(file_path, 'r') as file:
-        content = file.read()
-
-    # Replace 'from proto.models' with 'from . import'
-    content = re.sub(r'from proto\.models', r'from . import', content)
-
-    # Replace 'import proto.models' with 'from . import'
-    content = re.sub(r'import proto\.models', r'from . import', content)
-
-    # Replace 'from ..models import import' with 'from . import'
-    content = re.sub(r'from \.\.models import import', r'from . import', content)
-    content = re.sub(r'from . import import', r'from . import', content)
-
-    # Fix the specific case for epistemic_me_pb2_grpc.py
-    content = re.sub(r'from \. import epistemic_me_pb2 as proto_dot_epistemic__me__pb2',
-                     r'from . import epistemic_me_pb2 as proto_dot_epistemic__me__pb2', content)
-
-    with open(file_path, 'w') as file:
-        file.write(content)
-
 def main():
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    proto_dir = os.path.join(project_root, 'core')
+    project_root = os.path.abspath(os.path.dirname(__file__))
+    proto_dir = os.path.join(project_root, 'proto')
     out_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'epistemic_me', 'generated'))
 
-    # Ensure output directory exists
+    # Create all necessary output directories
     os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(os.path.join(out_dir, 'proto'), exist_ok=True)
+    os.makedirs(os.path.join(out_dir, 'proto', 'models'), exist_ok=True)
 
     # Find all .proto files
     proto_files = []
-    for root, _, files in os.walk(os.path.join(proto_dir, 'proto')):
+    for root, _, files in os.walk(proto_dir):
         for file in files:
             if file.endswith('.proto'):
                 proto_files.append(os.path.relpath(os.path.join(root, file), proto_dir))
 
-    # Generate protobuf files
-    # cmd = [
-    #     sys.executable, '-m', 'grpc_tools.protoc',
-    #     f'-I{proto_dir}',
-    #     f'--python_out={out_dir}',
-    #     f'--grpc_python_out={out_dir}',
-    # ] + proto_files
-
-    # Create necessary directories
-    os.makedirs(os.path.join(out_dir, 'proto'), exist_ok=True)
-    os.makedirs(os.path.join(out_dir, 'proto', 'models'), exist_ok=True)
-
     try:
-        # print("Executing command:", ' '.join(cmd))
-        # subprocess.run(cmd, check=True, cwd=proto_dir)
         protoc.main([
             'grpc_tools.protoc',
+            f'-I{project_root}',
             f'-I{proto_dir}',
             f'--python_out={out_dir}',
             f'--grpc_python_out={out_dir}',
-        ] + proto_files)
+        ] + [os.path.join(proto_dir, f) for f in proto_files])
         print(f"Protobuf files generated in {out_dir}")
 
         # Fix imports in generated files
