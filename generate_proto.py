@@ -55,7 +55,9 @@ def main():
     #     f'--grpc_python_out={out_dir}',
     # ] + proto_files
 
-
+    # Create necessary directories
+    os.makedirs(os.path.join(out_dir, 'proto'), exist_ok=True)
+    os.makedirs(os.path.join(out_dir, 'proto', 'models'), exist_ok=True)
 
     try:
         # print("Executing command:", ' '.join(cmd))
