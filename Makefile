@@ -6,6 +6,9 @@ install:
 test:
 	pytest
 
+test-quiet:
+	pytest --disable-warnings -q
+
 lint:
 	mypy epistemic_me tests
 	black --check epistemic_me tests

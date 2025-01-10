@@ -6,7 +6,7 @@ from epistemic_me.generated.proto import epistemic_me_pb2
 @pytest.fixture
 def mock_grpc_client():
     with patch('epistemic_me.grpc_client.grpc.insecure_channel') as mock_channel:
-        client = GrpcClient('localhost:50051', '')  # Empty API key for initial client
+        client = GrpcClient('localhost:50051', 'test_api_key')
         client.stub = Mock()
         yield client
 
@@ -28,7 +28,7 @@ def test_create_developer(mock_grpc_client):
             name='Test Developer',
             email='test@example.com'
         ),
-        metadata=[('api-key', '')]
+        metadata=[('x-api-key', 'test_api_key')]
     )
     assert isinstance(result, dict)
     assert result['id'] == 'dev123'
@@ -48,7 +48,7 @@ def test_retrieve_developer(mock_grpc_client):
     
     mock_grpc_client.stub.GetDeveloper.assert_called_once_with(
         epistemic_me_pb2.GetDeveloperRequest(id='dev123'),
-        metadata=[('api-key', '')]
+        metadata=[('x-api-key', 'test_api_key')]
     )
     assert isinstance(result, dict)
     assert result['id'] == 'dev123'
@@ -76,7 +76,7 @@ def test_create_user(mock_grpc_client):
             name='Test User',
             email='testuser@example.com'
         ),
-        metadata=[('api-key', '')]
+        metadata=[('x-api-key', 'test_api_key')]
     )
     assert isinstance(result, dict)
     assert result['id'] == 'user123'

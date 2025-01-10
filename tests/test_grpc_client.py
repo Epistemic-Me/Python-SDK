@@ -19,7 +19,7 @@ def test_create_belief(mock_grpc_client):
     
     mock_grpc_client.stub.CreateBelief.assert_called_once_with(
         epistemic_me_pb2.CreateBeliefRequest(self_model_id='self_model123', belief_content='Test belief'),
-        metadata=[('api-key', 'test_api_key')]
+        metadata=[('x-api-key', 'test_api_key')]
     )
     assert isinstance(result, dict)
 
@@ -31,7 +31,7 @@ def test_list_beliefs(mock_grpc_client):
     
     mock_grpc_client.stub.ListBeliefs.assert_called_once_with(
         epistemic_me_pb2.ListBeliefsRequest(self_model_id='self_model123'),
-        metadata=[('api-key', 'test_api_key')]
+        metadata=[('x-api-key', 'test_api_key')]
     )
     assert isinstance(result, list)
 
@@ -43,7 +43,7 @@ def test_create_dialectic(mock_grpc_client):
     
     mock_grpc_client.stub.CreateDialectic.assert_called_once_with(
         epistemic_me_pb2.CreateDialecticRequest(self_model_id='self_model123'),
-        metadata=[('api-key', 'test_api_key')]
+        metadata=[('x-api-key', 'test_api_key')]
     )
     assert isinstance(result, dict)
 
@@ -66,7 +66,7 @@ def test_update_dialectic(mock_grpc_client):
             self_model_id='model123',
             dry_run=False
         ),
-        metadata=[('api-key', 'test_api_key')]
+        metadata=[('x-api-key', 'test_api_key')]
     )
     assert isinstance(result, dict)
 
@@ -80,6 +80,6 @@ def test_get_belief_system(mock_grpc_client):
         epistemic_me_pb2.GetBeliefSystemRequest(
             self_model_id='self_model123'
         ),
-        metadata=[('api-key', 'test_api_key')]
+        metadata=[('x-api-key', 'test_api_key')]
     )
     assert isinstance(result, dict)
