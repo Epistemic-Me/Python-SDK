@@ -1,54 +1,59 @@
+import uuid
 import pytest
-from unittest.mock import Mock, patch
-from epistemic_me.grpc_client import GrpcClient
-from epistemic_me.generated.proto import epistemic_me_pb2
-from epistemic_me.generated.proto.models import dialectic_pb2
+import epistemic_me
 
 @pytest.fixture
-def mock_grpc_client():
-    with patch('epistemic_me.grpc_client.grpc.insecure_channel') as mock_channel:
-        client = GrpcClient('localhost:50051', 'test_api_key')
-        client.stub = Mock()
-        yield client
+def client():
+    return epistemic_me.create("", "localhost:8080")
 
-def test_create_dialectic(mock_grpc_client):
-    mock_response = epistemic_me_pb2.CreateDialecticResponse()
-    mock_response.dialectic.id = 'dialectic_001'
-    mock_response.dialectic.self_model_id = 'self_001'
-    mock_grpc_client.stub.CreateDialectic.return_value = mock_response
+@pytest.fixture
+def authenticated_client(client):
+    # Create a developer
+    developer_name = f"Test Developer {uuid.uuid4()}"
+    developer_email = f"test_{uuid.uuid4()}@example.com"
+    developer = epistemic_me.Developer.create(name=developer_name, email=developer_email)
+    
+    # Set the API key first
+    epistemic_me.config.api_key = developer["apiKeys"][0]
+    
+    # Create a self model after setting the API key
+    self_model = epistemic_me.SelfModel.create(id=str(uuid.uuid4()))
 
-    result = mock_grpc_client.create_dialectic('self_001')
-    
-    request = epistemic_me_pb2.CreateDialecticRequest()
-    request.self_model_id = 'self_001'
-    
-    mock_grpc_client.stub.CreateDialectic.assert_called_once_with(
-        request,
-        metadata=[('x-api-key', 'test_api_key')]
+    return {
+        "developer": developer,
+        "self_model_id": self_model["selfModel"]["id"]
+    }
+
+def test_create_dialectic(authenticated_client):
+    dialectic_response = epistemic_me.Dialectic.create(
+        self_model_id=authenticated_client["self_model_id"]
     )
-    assert isinstance(result, dict)
-    assert result['dialectic']['id'] == 'dialectic_001'
-    assert result['dialectic']['selfModelId'] == 'self_001'
+    dialectic = dialectic_response["dialectic"]
+    print(dialectic)
+    assert "id" in dialectic
+    assert "agent" in dialectic
+    assert dialectic["agent"]["agentType"] == "AGENT_TYPE_GPT_LATEST"
+    assert len(dialectic["userInteractions"]) == 1
 
-def test_answer_dialectic(mock_grpc_client):
-    mock_response = epistemic_me_pb2.UpdateDialecticResponse()
-    mock_response.dialectic.id = 'dialectic_001'
-    mock_grpc_client.stub.UpdateDialectic.return_value = mock_response
-
-    # Create UserAnswer message first
-    user_answer = dialectic_pb2.UserAnswer()
-    user_answer.user_answer = 'Test answer'
-
-    # Create the request and set the UserAnswer
-    request = epistemic_me_pb2.UpdateDialecticRequest()
-    request.id = 'dialectic_001'
-    request.answer.CopyFrom(user_answer)
-    
-    result = mock_grpc_client.update_dialectic(request.id, user_answer)
-    
-    mock_grpc_client.stub.UpdateDialectic.assert_called_once_with(
-        request,
-        metadata=[('x-api-key', 'test_api_key')]
+def test_qa_flow(authenticated_client):
+    # Create a new dialectic
+    dialectic_response = epistemic_me.Dialectic.create(
+        self_model_id=authenticated_client["self_model_id"]
     )
-    assert isinstance(result, dict)
-    assert result['dialectic']['id'] == 'dialectic_001'
+    dialectic = dialectic_response["dialectic"]
+    
+    # Provide an answer and get next question
+    updated_dialectic_response = epistemic_me.Dialectic.update(
+        id=dialectic["id"],
+        answer="I believe regular exercise is important for maintaining health",
+        self_model_id=authenticated_client["self_model_id"]
+    )
+    updated_dialectic = updated_dialectic_response["dialectic"]
+
+    # test for user interactions
+    assert "userInteractions" in updated_dialectic
+    user_interactions = updated_dialectic["userInteractions"]
+    assert len(user_interactions) == 2
+    print(user_interactions[0])
+    assert user_interactions[0]["status"] == "ANSWERED"
+    assert user_interactions[1]["status"] == "PENDING_ANSWER"
