@@ -42,6 +42,13 @@ def test_qa_flow(authenticated_client):
     )
     dialectic = dialectic_response["dialectic"]
     
+    # Test initial dialectic structure
+    assert "id" in dialectic
+    assert dialectic["id"].startswith("di_")
+    assert "agent" in dialectic
+    assert dialectic["agent"]["agentType"] == "AGENT_TYPE_GPT_LATEST"
+    assert "userInteractions" in dialectic
+    
     # Provide an answer and get next question
     updated_dialectic_response = epistemic_me.Dialectic.update(
         id=dialectic["id"],
@@ -50,10 +57,60 @@ def test_qa_flow(authenticated_client):
     )
     updated_dialectic = updated_dialectic_response["dialectic"]
 
-    # test for user interactions
+    # Test user interactions array
     assert "userInteractions" in updated_dialectic
     user_interactions = updated_dialectic["userInteractions"]
-    assert len(user_interactions) == 2
-    print(user_interactions[0])
-    assert user_interactions[0]["status"] == "ANSWERED"
-    assert user_interactions[1]["status"] == "PENDING_ANSWER"
+    assert len(user_interactions) == 2  # Original question + next question
+    
+    # Test first interaction (answered)
+    answered_interaction = user_interactions[0]
+    assert answered_interaction["status"] == "ANSWERED"
+    assert answered_interaction["type"] == "QUESTION_ANSWER"
+    
+    # Test question-answer structure
+    assert "questionAnswer" in answered_interaction
+    qa = answered_interaction["questionAnswer"]
+    assert "question" in qa
+    assert "answer" in qa
+    assert "extractedBeliefs" in qa
+    
+    # Test question structure
+    question = qa["question"]
+    assert "question" in question
+    assert isinstance(question["question"], str)
+    assert "createdAtMillisUtc" in question
+    assert isinstance(question["createdAtMillisUtc"], str)
+    
+    # Test answer structure
+    answer = qa["answer"]
+    assert "userAnswer" in answer
+    assert answer["userAnswer"] == "I believe regular exercise is important for maintaining health"
+    assert "createdAtMillisUtc" in answer
+    
+    # Test extracted beliefs
+    beliefs = qa["extractedBeliefs"]
+    assert isinstance(beliefs, list)
+    if len(beliefs) > 0:  # If beliefs were extracted
+        belief = beliefs[0]
+        assert "id" in belief
+        assert "content" in belief
+        assert isinstance(belief["content"], list)
+        assert "rawStr" in belief["content"][0]
+        assert "type" in belief
+    
+    # Test next interaction (pending)
+    pending_interaction = user_interactions[1]
+    assert pending_interaction["status"] == "PENDING_ANSWER"
+    assert pending_interaction["type"] == "QUESTION_ANSWER"
+    assert "questionAnswer" in pending_interaction
+    assert "question" in pending_interaction["questionAnswer"]
+    
+    # Test pending question structure
+    pending_question = pending_interaction["questionAnswer"]["question"]
+    assert isinstance(pending_question["question"], str)
+    assert "createdAtMillisUtc" in pending_question
+    
+    # Test prediction context if present
+    if "predictionContext" in pending_interaction:
+        prediction = pending_interaction["predictionContext"]
+        assert isinstance(prediction, dict)
