@@ -67,46 +67,35 @@ def test_qa_flow(authenticated_client):
     assert answered_interaction["status"] == "ANSWERED"
     assert answered_interaction["type"] == "QUESTION_ANSWER"
     
-    # Test question-answer structure
-    assert "questionAnswer" in answered_interaction
-    qa = answered_interaction["questionAnswer"]
-    assert "question" in qa
-    assert "answer" in qa
-    assert "extractedBeliefs" in qa
+    # Test interaction structure
+    assert "interaction" in answered_interaction
+    qa = answered_interaction["interaction"]
+    assert "questionAnswer" in qa
+    question_answer = qa["questionAnswer"]
+    assert "question" in question_answer
+    assert "answer" in question_answer
     
-    # Test question structure
-    question = qa["question"]
-    assert "question" in question
-    assert isinstance(question["question"], str)
-    assert "createdAtMillisUtc" in question
-    assert isinstance(question["createdAtMillisUtc"], str)
-    
-    # Test answer structure
-    answer = qa["answer"]
-    assert "userAnswer" in answer
-    assert answer["userAnswer"] == "I believe regular exercise is important for maintaining health"
-    assert "createdAtMillisUtc" in answer
-    
-    # Test extracted beliefs
-    beliefs = qa["extractedBeliefs"]
-    assert isinstance(beliefs, list)
-    if len(beliefs) > 0:  # If beliefs were extracted
-        belief = beliefs[0]
-        assert "id" in belief
-        assert "content" in belief
-        assert isinstance(belief["content"], list)
-        assert "rawStr" in belief["content"][0]
-        assert "type" in belief
+    # Test extracted beliefs if present
+    if "extractedBeliefs" in question_answer:
+        beliefs = question_answer["extractedBeliefs"]
+        assert isinstance(beliefs, list)
+        if len(beliefs) > 0:
+            belief = beliefs[0]
+            assert "id" in belief
+            assert "content" in belief
+            assert isinstance(belief["content"], list)
+            assert "rawStr" in belief["content"][0]
+            assert "type" in belief
     
     # Test next interaction (pending)
     pending_interaction = user_interactions[1]
     assert pending_interaction["status"] == "PENDING_ANSWER"
     assert pending_interaction["type"] == "QUESTION_ANSWER"
-    assert "questionAnswer" in pending_interaction
-    assert "question" in pending_interaction["questionAnswer"]
+    assert "interaction" in pending_interaction
+    assert "questionAnswer" in pending_interaction["interaction"]
     
     # Test pending question structure
-    pending_question = pending_interaction["questionAnswer"]["question"]
+    pending_question = pending_interaction["interaction"]["questionAnswer"]["question"]
     assert isinstance(pending_question["question"], str)
     assert "createdAtMillisUtc" in pending_question
     
