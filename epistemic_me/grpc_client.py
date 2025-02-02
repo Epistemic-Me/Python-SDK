@@ -1,9 +1,12 @@
 import grpc
 from google.protobuf.json_format import MessageToDict
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 from .generated.proto import epistemic_me_pb2, epistemic_me_pb2_grpc
 from .generated.proto.models import dialectic_pb2
+
+if TYPE_CHECKING:
+    from .dialectic import LearningObjective
 
 class GrpcClient:
     def __init__(self, base_url: str, api_key: str):
@@ -70,9 +73,12 @@ class GrpcClient:
         response = self.stub.AddPhilosophy(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
-    def create_dialectic(self, id: str):
+    def create_dialectic(self, id: str, learning_objective: Optional['LearningObjective'] = None,
+                        dialectic_type: dialectic_pb2.DialecticType = dialectic_pb2.DialecticType.DEFAULT):
         request = self.pb.CreateDialecticRequest(
-            self_model_id=id
+            self_model_id=id,
+            dialectic_type=dialectic_type,
+            learning_objective=learning_objective.to_proto() if learning_objective else None
         )
         response = self.stub.CreateDialectic(request, metadata=self._get_metadata())
         return MessageToDict(response)
