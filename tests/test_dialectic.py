@@ -1,6 +1,8 @@
 import uuid
 import pytest
 import epistemic_me
+from epistemic_me.dialectic import LearningObjective
+from epistemic_me.generated.proto.models import beliefs_pb2
 
 @pytest.fixture
 def client():
@@ -103,3 +105,28 @@ def test_qa_flow(authenticated_client):
     if "predictionContext" in pending_interaction:
         prediction = pending_interaction["predictionContext"]
         assert isinstance(prediction, dict)
+
+def test_create_dialectic_with_learning_objective(authenticated_client):
+    # Create a learning objective focused on health beliefs
+    learning_objective = LearningObjective(
+        description="Learn about user's health and fitness beliefs",
+        topics=["health", "fitness", "exercise", "nutrition"],
+        target_belief_type=beliefs_pb2.BeliefType.FALSIFIABLE
+    )
+
+    dialectic_response = epistemic_me.Dialectic.create(
+        self_model_id=authenticated_client["self_model_id"],
+        learning_objective=learning_objective
+    )
+    dialectic = dialectic_response["dialectic"]
+    
+    # Test basic dialectic structure
+    assert "id" in dialectic
+    assert "agent" in dialectic
+    assert dialectic["agent"]["agentType"] == "AGENT_TYPE_GPT_LATEST"
+    
+    # Test learning objective was included
+    assert "learningObjective" in dialectic
+    assert dialectic["learningObjective"]["description"] == "Learn about user's health and fitness beliefs"
+    assert all(topic in dialectic["learningObjective"]["topics"] for topic in ["health", "fitness", "exercise", "nutrition"])
+    assert dialectic["learningObjective"]["targetBeliefType"] == "FALSIFIABLE"
