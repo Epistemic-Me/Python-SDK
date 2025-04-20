@@ -65,9 +65,26 @@ class GrpcClient:
         response = self.stub.ListDialectics(request, metadata=self._get_metadata())
         return MessageToDict(response)
 
-    def add_philosophy(self, id: str, philosophy_id: str) -> Dict[str, Any]:
+    def create_philosophy(self, description: str, extrapolate_contexts: bool = False):
+        request = self.pb.CreatePhilosophyRequest(
+            description=description,
+            extrapolate_contexts=extrapolate_contexts
+        )
+        response = self.stub.CreatePhilosophy(request, metadata=self._get_metadata())
+        return MessageToDict(response)
+
+    def update_philosophy(self, philosophy_id: str, description: str, extrapolate_contexts: bool = False):
+        request = self.pb.UpdatePhilosophyRequest(
+            philosophy_id=philosophy_id,
+            description=description,
+            extrapolate_contexts=extrapolate_contexts
+        )
+        response = self.stub.UpdatePhilosophy(request, metadata=self._get_metadata())
+        return MessageToDict(response)
+
+    def add_philosophy(self, self_model_id: str, philosophy_id: str) -> Dict[str, Any]:
         request = self.pb.AddPhilosophyRequest(
-            self_model_id=id,
+            self_model_id=self_model_id,
             philosophy_id=philosophy_id
         )
         response = self.stub.AddPhilosophy(request, metadata=self._get_metadata())
