@@ -29,7 +29,29 @@ def test_create_philosophy(mock_grpc_client):
     assert result.philosophy.id == 'phil_001'
     assert result.philosophy.description == 'Test philosophy text'
 
-def test_add_observation_contexts(mock_grpc_client):
+def test_update_philosophy(mock_grpc_client):
+    mock_response = epistemic_me_pb2.UpdatePhilosophyResponse()
+    mock_response.philosophy.id = 'phil_001'
+    mock_response.philosophy.description = 'Updated philosophy text'
+    mock_response.philosophy.extrapolate_contexts = True
+    mock_grpc_client.stub.UpdatePhilosophy.return_value = mock_response
+
+    request = epistemic_me_pb2.UpdatePhilosophyRequest()
+    request.philosophy_id = 'phil_001'
+    request.description = 'Updated philosophy text'
+    request.extrapolate_contexts = True
+
+    result = mock_grpc_client.stub.UpdatePhilosophy(
+        request,
+        metadata=[('x-api-key', 'test_api_key')]
+    )
+
+    assert isinstance(result.philosophy.id, str)
+    assert result.philosophy.id == 'phil_001'
+    assert result.philosophy.description == 'Updated philosophy text'
+    assert result.philosophy.extrapolate_contexts is True
+
+def test_add_to_self_model(mock_grpc_client):
     mock_response = epistemic_me_pb2.AddPhilosophyResponse()
     mock_response.updated_self_model.id = 'self_001'
     mock_response.updated_self_model.philosophies.append('phil_001')
